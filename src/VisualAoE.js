@@ -9,22 +9,24 @@ var VisualAoE = function (canvas, opts) {
 
 	// Default settings
 	tg.settings = {
-		loss: 0.03, // Width ( Mass ) loss per cycle
+		lossQuantity: 0.03, // Width ( Mass ) loss per cycle
 		minSleep: 10, // Min sleep time (For the animation)
 		loopLoss: 1, // % width maintained for loops
 		mainLoss: 1, // % width maintained after looping
-		speed: 0.3, // speed / time
-		newLoop: 0.4, // Chance of not starting a new loop ( Exception (?) )
+		time: 0.3, // time / time
+		exceptionProb: 0.4, // Chance of not starting a new loop ( Exception (?) )
 		colorful: false, // Use colors for new recursions
 		fastMode: true, // Fast growth mode
 		fadeOut: false, // Fade slowly to black
 		fadeAmount: 0.05, // How much per iteration
-		autoSpawn: true, // Automatically create recursions
-		spawnInterval: 250, // Spawn interval in ms
+		runSpawn: true, // Automatically create recursions
+		//spawnInterval: 250, // Spawn interval in ms
 		fadeInterval: 250, // Fade interval in ms
-		initialWidth: 50, // Initial loop width
+		initialMass: 1, // Initial loop width
 		indicateNewLoop: true, // Display a visual indicator when a new loop is born
 		fitScreen: true, // Resize canvas to fit screen,
+		infinite: false,
+		cleanNow: false,
 		stringColor: '#ffffff',
 		bgColor: [0, 0, 0]
 	};
@@ -49,22 +51,12 @@ var VisualAoE = function (canvas, opts) {
 		fading: null
 	}
 
-	/**
-	 * Start generating recursions at the specified interval. If none is specified
-	 * it takes the default interval found in the settings (spawnInterval)
-	 * @param  {int} interval Spawn interval
-	 * @param  {int} fadeInterval Fade interval
-	 * @return {void}
-	 */
 	tg.start = function () {
 		// Clear intervals
 		tg.stop();
-		// Check autoSpawn
-		if (tg.settings.autoSpawn) {
-			loop(canvas.WIDTH / 2, canvas.HEIGHT, 0, -3, 10, 30, 0, tg.settings.stringColor);
-			/*intervals.generation = setInterval(function () {
-				loop((Math.random() * 4) * canvas.WIDTH / 4, canvas.HEIGHT, 0, -Math.random() * 3, 10 * Math.random(), 30, 0, newColor());
-			}, tg.settings.spawnInterval);*/
+		// Check runSpawn
+		if (tg.settings.runSpawn) {
+			loop(canvas.WIDTH / 2, canvas.HEIGHT, 0, -3, tg.settings.initialMass*10, 30, 0, tg.settings.stringColor);
 		}
 		// Check autoFade
 		if (tg.settings.fadeOut) {
@@ -81,6 +73,7 @@ var VisualAoE = function (canvas, opts) {
 	tg.stop = function () {
 		clearInterval(intervals.generation);
 		clearInterval(intervals.fading);
+		clear();
 	};
 
 	/**
@@ -99,7 +92,7 @@ var VisualAoE = function (canvas, opts) {
 	 * @return {void}
 	 */
 	function loop(x, y, dx, dy, w, growthRate, lifetime, stringColor) {
-		canvas.ctx.lineWidth = w - lifetime * tg.settings.loss;
+		canvas.ctx.lineWidth = w - lifetime * tg.settings.lossQuantity;
 		canvas.ctx.beginPath();
 		canvas.ctx.moveTo(x, y);
 		if (tg.settings.fastMode) growthRate *= 0.5;
@@ -107,29 +100,29 @@ var VisualAoE = function (canvas, opts) {
 		x = x + dx;
 		y = y + dy;
 		// Change dir
-		dx = dx + Math.sin(Math.random() + lifetime) * tg.settings.speed;
-		dy = dy + Math.cos(Math.random() + lifetime) * tg.settings.speed;
+		dx = dx + Math.sin(Math.random() + lifetime) * tg.settings.time;
+		dy = dy + Math.cos(Math.random() + lifetime) * tg.settings.time;
 		// Check if loops are getting too low
-		if (w < 6 && y > canvas.HEIGHT - Math.random() * (0.3 * canvas.HEIGHT)) w = w * 0.8;
+		if (!tg.settings.infinite && w < 6 && y > canvas.HEIGHT - Math.random() * (0.3 * canvas.HEIGHT)) w = w * 0.8;
 		// Draw the next segment of the loop
 		canvas.ctx.strokeStyle = stringColor || tg.settings.stringColor;
 		canvas.ctx.lineTo(x, y);
 		canvas.ctx.stroke();
 		// Generate new loops
 		// they should spawn after a certain lifetime has been met, although depending on the width
-		if (lifetime > 5 * w + Math.random() * 100 && Math.random() > tg.settings.newLoop) {
+		if (lifetime > 5 * w + Math.random() * 100 && Math.random() > tg.settings.exceptionProb) {
 			setTimeout(function () {
 				// Indicate the birth of a new loop
 				if (tg.settings.indicateNewLoop) {
 					circle(x, y, w, 'rgba(255,0,0,0.4)');
 				}
-				loop(x, y, 2 * Math.sin(Math.random() + lifetime), 2 * Math.cos(Math.random() + lifetime), (w - lifetime * tg.settings.loss) * tg.settings.loopLoss, growthRate + Math.random() * 100, 0, stringColor);
+				loop(x, y, 2 * Math.sin(Math.random() + lifetime), 2 * Math.cos(Math.random() + lifetime), (w - lifetime * tg.settings.lossQuantity) * tg.settings.loopLoss, growthRate + Math.random() * 100, 0, stringColor);
 				// When it loops, it looses a bit of width
 				w *= tg.settings.mainLoss;
 			}, 2 * growthRate * Math.random() + tg.settings.minSleep);
 		}
 		// Continue the loop
-		if (w - lifetime * tg.settings.loss >= 1) setTimeout(function () {
+		if (tg.settings.infinite || (w - lifetime * tg.settings.lossQuantity >= 1)) setTimeout(function () {
 			loop(x, y, dx, dy, w, growthRate, ++lifetime, stringColor);
 		}, growthRate);
 	}
@@ -140,7 +133,7 @@ var VisualAoE = function (canvas, opts) {
 
 	// Clear the canvas
 	function clear() {
-		ctx.clearRect(0, 0 - HEIGHT / 2, WIDTH, HEIGHT);
+		canvas.ctx.clearRect(0, 0, canvas.WIDTH, canvas.HEIGHT);
 	}
 
 	/**

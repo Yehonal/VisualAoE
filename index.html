@@ -27,7 +27,7 @@
 <body>
 
 	<div style="position:absolute; top:10px; left:10px;">
-		<h1>VisualAoE</h1>
+		<h1>Algorithm of Everything</h1>
 	</div>
 	<canvas width="100%" height="100%" id="bg" style="color:#09F"></canvas>
 
@@ -44,25 +44,28 @@
 
 			// Setup dat gui to control variables
 			var gui = new dat.GUI();
-			var f1 = gui.addFolder('Loop growth');
-				f1.add(aoe.settings, 'loss', 0, 0.1);
-				f1.add(aoe.settings, 'newLoop',0,1);
-				f1.add(aoe.settings, 'loopLoss',0,1);
-				f1.add(aoe.settings, 'mainLoss',0,1);
-				f1.add(aoe.settings, 'initialWidth',1,50);
-			var autoMode = f1.add(aoe.settings, 'autoSpawn');
-			var autoInterval = f1.add(aoe.settings,'spawnInterval',0,1000);
+			var f1 = gui.addFolder('Algorithm Parameters');
+				//f1.add(aoe.settings, 'lossQuantity', 0, 0.1);
+				f1.add(aoe.settings, 'exceptionProb',0,1);
+				//f1.add(aoe.settings, 'loopLoss',0,1);
+				//f1.add(aoe.settings, 'mainLoss',0,1);
+				f1.add(aoe.settings, 'time',0,1);
+				f1.add(aoe.settings, 'initialMass',0,1);
 			var f2 = gui.addFolder('Visuals');
 				f2.add(aoe.settings, 'minSleep',0,50);
+				f2.add(aoe.settings, 'infinite');
 				f2.add(aoe.settings, 'colorful');
-				f2.add(aoe.settings, 'speed',0,1);
 				f2.add(aoe.settings, 'fastMode');
 				f2.add(aoe.settings, 'indicateNewLoop');
+			var start = f2.add(aoe.settings, 'runSpawn');
+			//var autoInterval = f2.add(aoe.settings,'spawnInterval',0,1000);
 			var f3 = gui.addFolder('Fading');
 				var fadeOut = f3.add(aoe.settings, 'fadeOut');
 				f3.add(aoe.settings, 'fadeAmount',0,0.3);
 
-			autoMode.onChange(function(val){
+			start.onChange(function(val){
+				aoe.stop();
+				//aoe.clear();
 				aoe.start();
 			});
 
@@ -70,9 +73,9 @@
 				aoe.start();
 			});
 			
-			autoInterval.onFinishChange(function(){
+			/*autoInterval.onFinishChange(function(){
 				aoe.start();
-			});
+			});*/
 
 			gui.remember(aoe);
 		});
