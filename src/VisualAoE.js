@@ -9,22 +9,22 @@ var VisualAoE = function (canvas, opts) {
 
 	// Default settings
 	tg.settings = {
-		loss: 0.03, // Width loss per cycle
+		loss: 0.03, // Width ( Mass ) loss per cycle
 		minSleep: 10, // Min sleep time (For the animation)
-		branchLoss: 0.8, // % width maintained for branches
-		mainLoss: 0.8, // % width maintained after branching
-		speed: 0.3, // Movement speed
-		newBranch: 0.8, // Chance of not starting a new branch 
+		loopLoss: 1, // % width maintained for loops
+		mainLoss: 1, // % width maintained after looping
+		speed: 0.3, // speed / time
+		newLoop: 0.4, // Chance of not starting a new loop ( Exception (?) )
 		colorful: false, // Use colors for new recursions
 		fastMode: true, // Fast growth mode
-		fadeOut: true, // Fade slowly to black
+		fadeOut: false, // Fade slowly to black
 		fadeAmount: 0.05, // How much per iteration
 		autoSpawn: true, // Automatically create recursions
 		spawnInterval: 250, // Spawn interval in ms
 		fadeInterval: 250, // Fade interval in ms
-		initialWidth: 10, // Initial branch width
-		indicateNewBranch: false, // Display a visual indicator when a new branch is born
-		fitScreen: false, // Resize canvas to fit screen,
+		initialWidth: 50, // Initial loop width
+		indicateNewLoop: true, // Display a visual indicator when a new loop is born
+		fitScreen: true, // Resize canvas to fit screen,
 		stringColor: '#ffffff',
 		bgColor: [0, 0, 0]
 	};
@@ -61,10 +61,10 @@ var VisualAoE = function (canvas, opts) {
 		tg.stop();
 		// Check autoSpawn
 		if (tg.settings.autoSpawn) {
-			branch(canvas.WIDTH / 2, canvas.HEIGHT, 0, -3, 10, 0, tg.settings.stringColor);
-			intervals.generation = setInterval(function () {
-				branch((Math.random() * 4) * canvas.WIDTH / 4, canvas.HEIGHT, 0, -Math.random() * 3, 10 * Math.random(), 30, 0, newColor());
-			}, tg.settings.spawnInterval);
+			loop(canvas.WIDTH / 2, canvas.HEIGHT, 0, -3, 10, 30, 0, tg.settings.stringColor);
+			/*intervals.generation = setInterval(function () {
+				loop((Math.random() * 4) * canvas.WIDTH / 4, canvas.HEIGHT, 0, -Math.random() * 3, 10 * Math.random(), 30, 0, newColor());
+			}, tg.settings.spawnInterval);*/
 		}
 		// Check autoFade
 		if (tg.settings.fadeOut) {
@@ -84,7 +84,7 @@ var VisualAoE = function (canvas, opts) {
 	};
 
 	/**
-	 * Recursive function that generates the recursions. This is the important part of the
+	 * Recursive function that generates the loops. This is the important part of the
 	 * generator. At any given point it continues in a logical manner, creating something similar
 	 * to a tree (at least using the default settings)
 	 * Appropriate tweaking of the settings can produce quite interesting results.
@@ -93,12 +93,12 @@ var VisualAoE = function (canvas, opts) {
 	 * @param  {float} dx          Variation of the x coordinate, indicates where it will move
 	 * @param  {float} dy          Variation of the y coordinate, indicates where it will move
 	 * @param  {float} w           Current width
-	 * @param  {float} growthRate  This branch's growth rate
+	 * @param  {float} growthRate  This loop's growth rate
 	 * @param  {int} lifetime      Cycles that have already happened
-	 * @param  {String} branchColor Branch color
+	 * @param  {String} stringColor string color
 	 * @return {void}
 	 */
-	function branch(x, y, dx, dy, w, growthRate, lifetime, branchColor) {
+	function loop(x, y, dx, dy, w, growthRate, lifetime, stringColor) {
 		canvas.ctx.lineWidth = w - lifetime * tg.settings.loss;
 		canvas.ctx.beginPath();
 		canvas.ctx.moveTo(x, y);
@@ -109,28 +109,28 @@ var VisualAoE = function (canvas, opts) {
 		// Change dir
 		dx = dx + Math.sin(Math.random() + lifetime) * tg.settings.speed;
 		dy = dy + Math.cos(Math.random() + lifetime) * tg.settings.speed;
-		// Check if branches are getting too low
+		// Check if loops are getting too low
 		if (w < 6 && y > canvas.HEIGHT - Math.random() * (0.3 * canvas.HEIGHT)) w = w * 0.8;
-		// Draw the next segment of the branch
-		canvas.ctx.strokeStyle = branchColor || tg.settings.stringColor;
+		// Draw the next segment of the loop
+		canvas.ctx.strokeStyle = stringColor || tg.settings.stringColor;
 		canvas.ctx.lineTo(x, y);
 		canvas.ctx.stroke();
-		// Generate new branches
+		// Generate new loops
 		// they should spawn after a certain lifetime has been met, although depending on the width
-		if (lifetime > 5 * w + Math.random() * 100 && Math.random() > tg.settings.newBranch) {
+		if (lifetime > 5 * w + Math.random() * 100 && Math.random() > tg.settings.newLoop) {
 			setTimeout(function () {
-				// Indicate the birth of a new branch
-				if (tg.settings.indicateNewBranch) {
+				// Indicate the birth of a new loop
+				if (tg.settings.indicateNewLoop) {
 					circle(x, y, w, 'rgba(255,0,0,0.4)');
 				}
-				branch(x, y, 2 * Math.sin(Math.random() + lifetime), 2 * Math.cos(Math.random() + lifetime), (w - lifetime * tg.settings.loss) * tg.settings.branchLoss, growthRate + Math.random() * 100, 0, branchColor);
-				// When it branches, it looses a bit of width
+				loop(x, y, 2 * Math.sin(Math.random() + lifetime), 2 * Math.cos(Math.random() + lifetime), (w - lifetime * tg.settings.loss) * tg.settings.loopLoss, growthRate + Math.random() * 100, 0, stringColor);
+				// When it loops, it looses a bit of width
 				w *= tg.settings.mainLoss;
 			}, 2 * growthRate * Math.random() + tg.settings.minSleep);
 		}
-		// Continue the branch
+		// Continue the loop
 		if (w - lifetime * tg.settings.loss >= 1) setTimeout(function () {
-			branch(x, y, dx, dy, w, growthRate, ++lifetime, branchColor);
+			loop(x, y, dx, dy, w, growthRate, ++lifetime, stringColor);
 		}, growthRate);
 	}
 
@@ -152,7 +152,7 @@ var VisualAoE = function (canvas, opts) {
 	 * @return {void}
 	 */
 	function circle(x, y, rad, color) {
-		// Circulo
+		// Circle
 		canvas.ctx.lineWidth = 1;
 		canvas.ctx.strokeStyle = color;
 		canvas.ctx.beginPath();
