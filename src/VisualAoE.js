@@ -1,20 +1,10 @@
 /**
- * TreeGenerator - 2D Tree generation in JavaScript
- * Documentation in comments
- *
- * This requires a farily modern browser, at least with support for the canvas object.
- *
- * @author Alejandro U. Alvarez
- * @version 1.0
- */
-
-/**
  * Documentation in the source code. Private methods are defined
  * as local functions, while exposed ones are members of the returned object tg.
  * @param {Object} canvas jQuery DOM object for the canvas element
  * @param {Object} opts   Settings array, see default values and explanation below
  */
-var TreeGenerator = function (canvas, opts) {
+var VisualAoE = function (canvas, opts) {
 	var tg = {};
 
 	// Default settings
@@ -25,17 +15,17 @@ var TreeGenerator = function (canvas, opts) {
 		mainLoss: 0.8, // % width maintained after branching
 		speed: 0.3, // Movement speed
 		newBranch: 0.8, // Chance of not starting a new branch 
-		colorful: false, // Use colors for new trees
+		colorful: false, // Use colors for new recursions
 		fastMode: true, // Fast growth mode
 		fadeOut: true, // Fade slowly to black
 		fadeAmount: 0.05, // How much per iteration
-		autoSpawn: true, // Automatically create trees
+		autoSpawn: true, // Automatically create recursions
 		spawnInterval: 250, // Spawn interval in ms
 		fadeInterval: 250, // Fade interval in ms
 		initialWidth: 10, // Initial branch width
 		indicateNewBranch: false, // Display a visual indicator when a new branch is born
 		fitScreen: false, // Resize canvas to fit screen,
-		treeColor: '#ffffff',
+		stringColor: '#ffffff',
 		bgColor: [0, 0, 0]
 	};
 
@@ -60,7 +50,7 @@ var TreeGenerator = function (canvas, opts) {
 	}
 
 	/**
-	 * Start generating trees at the specified interval. If none is specified
+	 * Start generating recursions at the specified interval. If none is specified
 	 * it takes the default interval found in the settings (spawnInterval)
 	 * @param  {int} interval Spawn interval
 	 * @param  {int} fadeInterval Fade interval
@@ -71,7 +61,7 @@ var TreeGenerator = function (canvas, opts) {
 		tg.stop();
 		// Check autoSpawn
 		if (tg.settings.autoSpawn) {
-			branch(canvas.WIDTH / 2, canvas.HEIGHT, 0, -3, 10, 0, tg.settings.treeColor);
+			branch(canvas.WIDTH / 2, canvas.HEIGHT, 0, -3, 10, 0, tg.settings.stringColor);
 			intervals.generation = setInterval(function () {
 				branch((Math.random() * 4) * canvas.WIDTH / 4, canvas.HEIGHT, 0, -Math.random() * 3, 10 * Math.random(), 30, 0, newColor());
 			}, tg.settings.spawnInterval);
@@ -85,7 +75,7 @@ var TreeGenerator = function (canvas, opts) {
 	};
 
 	/**
-	 * Stop generating trees
+	 * Stop generating recursions
 	 * @return {void}
 	 */
 	tg.stop = function () {
@@ -94,7 +84,7 @@ var TreeGenerator = function (canvas, opts) {
 	};
 
 	/**
-	 * Recursive function that generates the trees. This is the important part of the
+	 * Recursive function that generates the recursions. This is the important part of the
 	 * generator. At any given point it continues in a logical manner, creating something similar
 	 * to a tree (at least using the default settings)
 	 * Appropriate tweaking of the settings can produce quite interesting results.
@@ -122,7 +112,7 @@ var TreeGenerator = function (canvas, opts) {
 		// Check if branches are getting too low
 		if (w < 6 && y > canvas.HEIGHT - Math.random() * (0.3 * canvas.HEIGHT)) w = w * 0.8;
 		// Draw the next segment of the branch
-		canvas.ctx.strokeStyle = branchColor || tg.settings.treeColor;
+		canvas.ctx.strokeStyle = branchColor || tg.settings.stringColor;
 		canvas.ctx.lineTo(x, y);
 		canvas.ctx.stroke();
 		// Generate new branches
